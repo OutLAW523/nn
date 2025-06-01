@@ -1,19 +1,12 @@
 {
-  "name": "nn",
+  "name": "chat-app",
   "version": "1.0.0",
-  "description": "Simple chat app using Express and Socket.io",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
   },
   "dependencies": {
-    "express": "^4.18.2",
+    "express": "^4.18.4",
     "socket.io": "^4.7.2"
-  },
-  "engines": {
-    "node": ">=18.0.0"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC"
+  }
 }

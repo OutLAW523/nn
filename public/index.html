@@ -3,67 +3,22 @@
 <head>
   <meta charset="UTF-8">
   <title>채팅 앱</title>
-  <style>
-    #messages { list-style: none; padding: 0; max-height: 300px; overflow-y: auto; }
-    #chat { display: flex; margin-top: 10px; }
-    input { flex: 1; padding: 10px; }
-    button { padding: 10px; }
-  </style>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h1>채팅 앱</h1>
-  <div>
-    <label>채팅방 이름: <input id="roomInput" type="text" placeholder="room1" /></label>
+  <div id="room-select">
+    <input id="username" placeholder="사용자 이름">
+    <input id="roomName" placeholder="채팅방 이름">
     <button onclick="joinRoom()">입장</button>
   </div>
 
-  <ul id="messages"></ul>
-  <form id="chat" onsubmit="sendMessage(event)">
-    <input id="m" autocomplete="off" placeholder="메시지 입력" />
-    <button>전송</button>
-  </form>
+  <div id="chat-container" style="display:none;">
+    <div id="chat"></div>
+    <input id="messageInput" placeholder="메시지 입력">
+    <button onclick="sendMessage()">전송</button>
+  </div>
 
-  <!-- socket.io 클라이언트 스크립트 -->
   <script src="/socket.io/socket.io.js"></script>
-  <script>
-    const socket = io(); // 현재 도메인 기준 자동 연결
-
-    let currentRoom = '';
-
-    function joinRoom() {
-      const room = document.getElementById('roomInput').value.trim();
-      if (!room) return alert('채팅방 이름을 입력하세요.');
-      currentRoom = room;
-      socket.emit('join room', room);
-      document.getElementById('messages').innerHTML = '';
-    }
-
-    socket.on('chat history', (msgs) => {
-      msgs.forEach((msg) => appendMessage(msg.user, msg.text));
-    });
-
-    socket.on('chat message', (msg) => {
-      appendMessage(msg.user, msg.text);
-    });
-
-    function appendMessage(user, text) {
-      const li = document.createElement('li');
-      li.textContent = `${user}: ${text}`;
-      document.getElementById('messages').appendChild(li);
-    }
-
-    function sendMessage(e) {
-      e.preventDefault();
-      const input = document.getElementById('m');
-      if (!input.value || !currentRoom) return;
-      const msg = {
-        user: '익명', // 필요하면 사용자 이름 입력 받도록
-        text: input.value,
-        room: currentRoom,
-      };
-      socket.emit('chat message', msg);
-      input.value = '';
-    }
-  </script>
+  <script src="client.js"></script>
 </body>
 </html>

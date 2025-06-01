@@ -1,68 +1,56 @@
 const socket = io();
-let currentRoom = null;
+let currentRoom = '';
+let username = '';
 
-function scrollToBottom() {
+function joinRoom() {
+  username = document.getElementById('username').value;
+  currentRoom = document.getElementById('roomName').value;
+
+  if (!username || !currentRoom) return alert('이름과 방 이름을 입력하세요');
+
+  document.getElementById('room-select').style.display = 'none';
+  document.getElementById('chat-container').style.display = 'block';
+
+  socket.emit('join room', currentRoom);
+}
+
+socket.on('chat history', (messages) => {
   const chat = document.getElementById('chat');
+  chat.innerHTML = '';
+  messages.forEach(msg => appendMessage(msg));
+});
+
+socket.on('chat message', (msg) => {
+  appendMessage(msg);
+});
+
+function sendMessage() {
+  const input = document.getElementById('messageInput');
+  const message = input.value;
+  if (!message) return;
+
+  const now = new Date();
+  const time = now.toLocaleTimeString();
+
+  const msgObj = {
+    user: username,
+    text: message,
+    time,
+    room: currentRoom,
+  };
+
+  socket.emit('chat message', msgObj);
+  input.value = '';
+}
+
+function appendMessage({ user, text, time }) {
+  const chat = document.getElementById('chat');
+  const div = document.createElement('div');
+  div.textContent = `[${time}] ${user}: ${text}`;
+  chat.appendChild(div);
   chat.scrollTop = chat.scrollHeight;
 }
 
-// 채팅 기록 받기
-socket.on('chat history', (msgs) => {
-  const chat = document.getElementById('chat');
-  chat.innerHTML = '';
-  msgs.forEach((msg) => {
-    const div = document.createElement('div');
-    div.textContent = formatMessage(msg);
-    chat.appendChild(div);
-  });
-  scrollToBottom();
+document.getElementById('messageInput').addEventListener('keypress', (e) => {
+  if (e.key === 'Enter') sendMessage();
 });
-
-// 새 메시지 받기
-socket.on('chat message', (msg) => {
-  const chat = document.getElementById('chat');
-  const div = document.createElement('div');
-  div.textContent = formatMessage(msg);
-  chat.appendChild(div);
-  scrollToBottom();
-});
-
-function formatMessage(msg) {
-  return `[${msg.time}] ${msg.user}: ${msg.text}`;
-}
-
-function joinRoom() {
-  const room = document.getElementById('room').value.trim();
-  if (!room || room === currentRoom) return;
-
-  socket.emit('join room', room);
-  currentRoom = room;
-}
-
-// 전송
-function sendMessage() {
-  const username = document.getElementById('username').value.trim();
-  const message = document.getElementById('message').value.trim();
-  const room = document.getElementById('room').value.trim();
-
-  if (!username || !message || !room) return;
-
-  socket.emit('chat message', {
-    user: username,
-    text: message,
-    time: new Date().toLocaleTimeString(),
-    room: room
-  });
-
-  document.getElementById('message').value = '';
-}
-
-// 엔터 전송
-document.getElementById('message').addEventListener('keypress', function (e) {
-  if (e.key === 'Enter') {
-    sendMessage();
-  }
-});
-
-// 방 바꿀 때 감지
-document.getElementById('room').addEventListener('change', joinRoom);

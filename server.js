@@ -1,5 +1,6 @@
 const express = require('express');
 const http = require('http');
+const fs = require('fs');
 const { Server } = require('socket.io');
 const path = require('path');
 
@@ -8,29 +9,38 @@ const server = http.createServer(app);
 const io = new Server(server);
 
 const PORT = process.env.PORT || 3000;
+const MESSAGE_FILE = 'messages.json';
+let messagesByRoom = {};
 
-// 정적 파일 제공 (public 폴더)
+// 저장된 메시지 불러오기
+if (fs.existsSync(MESSAGE_FILE)) {
+  messagesByRoom = JSON.parse(fs.readFileSync(MESSAGE_FILE, 'utf-8'));
+}
+
 app.use(express.static(path.join(__dirname, 'public')));
 
-// 기본 라우터 (선택)
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
-
-// 소켓 연결 처리
 io.on('connection', (socket) => {
-  console.log('✅ A user connected');
+  let currentRoom = null;
+
+  socket.on('join room', (room) => {
+    if (currentRoom) socket.leave(currentRoom);
+    currentRoom = room;
+    socket.join(room);
+
+    const roomMessages = messagesByRoom[room] || [];
+    socket.emit('chat history', roomMessages);
+  });
 
   socket.on('chat message', (msg) => {
-    io.emit('chat message', msg);
-  });
+    const room = msg.room;
+    if (!messagesByRoom[room]) messagesByRoom[room] = [];
+    messagesByRoom[room].push(msg);
 
-  socket.on('disconnect', () => {
-    console.log('❌ A user disconnected');
+    fs.writeFileSync(MESSAGE_FILE, JSON.stringify(messagesByRoom, null, 2));
+    io.to(room).emit('chat message', msg);
   });
 });
 
-// 서버 실행
 server.listen(PORT, () => {
-  console.log(`🚀 Server is running on port ${PORT}`);
+  console.log(`✅ Server running: http://localhost:${PORT}`);
 });
