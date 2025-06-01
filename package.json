@@ -1,7 +1,7 @@
 {
-  "name": "chat-app",
+  "name": "nn",
   "version": "1.0.0",
-  "description": "Simple chat app using Express and Socket.IO",
+  "description": "Simple chat application",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
@@ -9,8 +9,5 @@
   "dependencies": {
     "express": "^4.18.2",
     "socket.io": "^4.7.2"
-  },
-  "engines": {
-    "node": ">=16"
   }
 }
