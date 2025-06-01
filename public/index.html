@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>아웃로</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <h1>아웃로</h1>
+
+  <input id="room" type="text" placeholder="채팅방 이름 (예: room1)" />
+  <input id="username" type="text" placeholder="사용자 이름" />
+  <div id="chat" style="height: 300px; overflow-y: auto; border: 1px solid #ccc; margin: 10px 0;"></div>
+  
+  <input id="message" type="text" placeholder="메시지를 입력하세요" />
+  <button onclick="sendMessage()">전송</button>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="client.js"></script>
+</body>
+</html>
