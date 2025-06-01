@@ -1,60 +1,36 @@
-const io = new Server(http, {
-  cors: {
-    origin: '*',
-    methods: ['GET', 'POST']
-  }
+const express = require('express');
+const http = require('http');
+const { Server } = require('socket.io');
+const path = require('path');
+
+const app = express();
+const server = http.createServer(app);
+const io = new Server(server);
+
+const PORT = process.env.PORT || 3000;
+
+// 정적 파일 제공 (public 폴더)
+app.use(express.static(path.join(__dirname, 'public')));
+
+// 기본 라우터 (선택)
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-const express = require('express');
-const fs = require('fs');
-const app = express();
-const http = require('http').createServer(app);
-const { Server } = require('socket.io');
-const io = new Server(http);
-
-// ✅ Render 호환용 포트 설정
-const PORT = process.env.PORT || 3000;
-const MESSAGE_FILE = 'messages.json';
-
-let messagesByRoom = {};
-
-// 이전 채팅 로딩
-if (fs.existsSync(MESSAGE_FILE)) {
-  const data = fs.readFileSync(MESSAGE_FILE, 'utf-8');
-  messagesByRoom = JSON.parse(data);
-}
-
-// 정적 파일 제공
-app.use(express.static('public'));
-
-// 소켓 연결
+// 소켓 연결 처리
 io.on('connection', (socket) => {
-  let currentRoom = null;
-
-  socket.on('join room', (room) => {
-    if (currentRoom) socket.leave(currentRoom);
-    currentRoom = room;
-    socket.join(room);
-
-    const roomMessages = messagesByRoom[room] || [];
-    socket.emit('chat history', roomMessages);
-  });
+  console.log('✅ A user connected');
 
   socket.on('chat message', (msg) => {
-    const room = msg.room;
-    if (!room) return;
+    io.emit('chat message', msg);
+  });
 
-    if (!Array.isArray(messagesByRoom[room])) {
-      messagesByRoom[room] = [];
-    }
-    messagesByRoom[room].push(msg);
-
-    fs.writeFileSync(MESSAGE_FILE, JSON.stringify(messagesByRoom, null, 2));
-    io.to(room).emit('chat message', msg);
+  socket.on('disconnect', () => {
+    console.log('❌ A user disconnected');
   });
 });
 
-// ✅ Render 호환용 포트로 실행
-http.listen(PORT, () => {
-  console.log(`🚀 서버 실행 중: http://localhost:${PORT}`);
+// 서버 실행
+server.listen(PORT, () => {
+  console.log(`🚀 Server is running on port ${PORT}`);
 });
