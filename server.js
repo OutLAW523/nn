@@ -1,3 +1,10 @@
+const io = new Server(http, {
+  cors: {
+    origin: '*',
+    methods: ['GET', 'POST']
+  }
+});
+
 const express = require('express');
 const fs = require('fs');
 const app = express();
