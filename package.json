@@ -1,7 +1,6 @@
 {
   "name": "nn",
   "version": "1.0.0",
-  "description": "Simple chat application",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
