@@ -5,7 +5,8 @@ const http = require('http').createServer(app);
 const { Server } = require('socket.io');
 const io = new Server(http);
 
-const PORT = 3000;
+// ✅ Render 호환용 포트 설정
+const PORT = process.env.PORT || 3000;
 const MESSAGE_FILE = 'messages.json';
 
 let messagesByRoom = {};
@@ -28,7 +29,6 @@ io.on('connection', (socket) => {
     currentRoom = room;
     socket.join(room);
 
-    // 해당 방 기록 전송
     const roomMessages = messagesByRoom[room] || [];
     socket.emit('chat history', roomMessages);
   });
@@ -38,15 +38,16 @@ io.on('connection', (socket) => {
     if (!room) return;
 
     if (!Array.isArray(messagesByRoom[room])) {
-    messagesByRoom[room] = [];
-}
-messagesByRoom[room].push(msg);
+      messagesByRoom[room] = [];
+    }
+    messagesByRoom[room].push(msg);
 
     fs.writeFileSync(MESSAGE_FILE, JSON.stringify(messagesByRoom, null, 2));
     io.to(room).emit('chat message', msg);
   });
 });
 
+// ✅ Render 호환용 포트로 실행
 http.listen(PORT, () => {
   console.log(`🚀 서버 실행 중: http://localhost:${PORT}`);
 });
